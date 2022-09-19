@@ -16,14 +16,17 @@ ETW = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 WHEELS = {
     "I" : {
         "wire": "EKMFLGDQVZNTOWYHXUSPAIBRCJ", # wheel 원판 순서
+        "mapped": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         "turn": 2 # 현재 wheel 위치가 turn 도달 시, 다음 wheel로..
     },
     "II": {
         "wire": "AJDKSIRUXBLHWTMCQGZNPYFVOE",
+        "mapped": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         "turn": 4
     },
     "III": {
         "wire": "BDFHJLCPRTXVZNYEIWGAKMUSQO",
+        "mapped": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         "turn": 21
     }
 }
@@ -54,7 +57,7 @@ def apply_settings(ukw, wheel, wheel_pos, plugboard):
             raise ArgumentError(f"WHEEL {wh} does not exist!")
         SETTINGS["WHEELS"].append(WHEELS[wh])
 
-    wheel_poses = wheel_pos.split(' ') # 해당 로터에서, 통과시킬 위치 정하기
+    wheel_poses = wheel_pos.split(' ') # 해당 로터 wire에서 shift 위치 정하기
     for wp in wheel_poses:
         if not wp in ETW:
             raise ArgumentError(f"WHEEL position must be in A-Z!")
@@ -84,15 +87,43 @@ def pass_etw(input):
 
 # Wheels
 def pass_wheels(input, reverse = False):
-    # Implement Wheel Logics ()
+    # Implement Wheel Logics
     # Keep in mind that reflected signals pass wheels in reverse order
     if reverse:
         # 0 -> 1 -> 2
-        pass
+        right_index = SETTINGS["WHEELS"][0]["wire"].index(input)
+        right_index = (right_index + pos_first) % 26
+        right_wheel_mapped_reverse = SETTINGS["WHEELS"][0]["mapped"][right_index]
+
+        middle_index = SETTINGS["WHEELS"][1]["wire"].index(right_wheel_mapped_reverse)
+        middle_index = (middle_index + pos_sec) % 26
+        middle_wheel_mapped_reverse = SETTINGS["WHEELS"][1]["mapped"][middle_index]
+
+        left_index = SETTINGS["WHEELS"][2]["wire"].index(middle_wheel_mapped_reverse)
+        left_index = (left_index + pos_third) % 26
+        left_wheel_mapped_reverse = SETTINGS["WHEELS"][2]["mapped"][left_index]
+        #print("Back to the BTW : ", left_wheel_mapped_reverse)
+        return left_wheel_mapped_reverse
+
     else:
+        input_index = SETTINGS["ETW"].index(input)
         # 2 -> 1 -> 0
-        pass
-    return input
+        input_index = (input_index + pos_first) % 26
+        left_wheel_mapped = SETTINGS["WHEELS"][2]["wire"][input_index]
+
+        middle_index = SETTINGS["WHEELS"][1]["wire"].index(left_wheel_mapped)
+        middle_index = (middle_index + pos_sec) % 26
+        middle_wheel_mapped = SETTINGS["WHEELS"][1]["wire"][middle_index]
+
+        right_index = SETTINGS["WHEELS"][0]["wire"].index(middle_wheel_mapped)
+        right_index = (right_index + pos_third) % 26
+        right_wheel_mapped = SETTINGS["WHEELS"][0]["wire"][right_index]
+        
+        return right_wheel_mapped
+
+def update_index(idx, pos):
+    if idx > 0:
+        return idx - pos
 
 # UKW
 def pass_ukw(input):
@@ -106,27 +137,34 @@ def rotate_wheels():
 
     # 2. first wheel rotate
     SETTINGS["WHEELS"][2]["wire"] = SETTINGS["WHEELS"][2]["wire"][1:] + SETTINGS["WHEELS"][2]["wire"][:1]
-    SETTINGS["WHEEL_POS"][2] = update_wheel_count(SETTINGS["WHEEL_POS"][2], SETTINGS["WHEELS"][2]["turn"])
+    SETTINGS["WHEELS"][2]["mapped"] = SETTINGS["WHEELS"][2]["mapped"][1:] + SETTINGS["WHEELS"][2]["mapped"][:1]
+    SETTINGS["WHEEL_POS"][2] = update_wheel_count(SETTINGS["WHEEL_POS"][2])
     pos_first += 1
     
     # 3. second wheel rotate (1째 wheel이 다 돌면 +1)
     if pos_first % SETTINGS["WHEELS"][2]["turn"] == 0:
         SETTINGS["WHEELS"][1]["wire"] = SETTINGS["WHEELS"][1]["wire"][1:] + SETTINGS["WHEELS"][1]["wire"][:1]
-        SETTINGS["WHEEL_POS"][1] = update_wheel_count(SETTINGS["WHEEL_POS"][1], SETTINGS["WHEELS"][1]["turn"])
+        SETTINGS["WHEELS"][2]["mapped"] = SETTINGS["WHEELS"][1]["mapped"][1:] + SETTINGS["WHEELS"][1]["mapped"][:1]
+        SETTINGS["WHEEL_POS"][1] = update_wheel_count(SETTINGS["WHEEL_POS"][1])
         pos_sec += 1
        
         # 4. third wheel rotate (2쨰 wheel이 다 돌면 +1)
         if pos_sec % SETTINGS["WHEELS"][1]["turn"] == 0 and pos_sec != 0:
             SETTINGS["WHEELS"][0]["wire"] = SETTINGS["WHEELS"][0]["wire"][1:] + SETTINGS["WHEELS"][0]["wire"][:1]
-            SETTINGS["WHEEL_POS"][0] = update_wheel_count(SETTINGS["WHEEL_POS"][0], SETTINGS["WHEELS"][0]["turn"])
+            SETTINGS["WHEELS"][0]["mapped"] = SETTINGS["WHEELS"][0]["mapped"][1:] + SETTINGS["WHEELS"][0]["mapped"][:1]
+            SETTINGS["WHEEL_POS"][0] = update_wheel_count(SETTINGS["WHEEL_POS"][0])
             pos_third += 1
 
-def update_wheel_count(current_wheel_pos, wheel_turn):
-    if current_wheel_pos < wheel_turn:
-        return current_wheel_pos + 1
+def update_wheel_count(current_wheel_pos):
+    if current_wheel_pos > 0:
+        return current_wheel_pos - 1
     else:
-        return 0
-    
+        return 25
+
+def shift(letter, shift, alphabet):
+    for i in range(0, len(alphabet)):
+        if alphabet[i] == letter:
+            return alphabet[(i+shift) % len(alphabet)]
 
 # Enigma Exec Start
 plaintext = input("Plaintext to Encode: ")
@@ -140,7 +178,17 @@ apply_settings(ukw_select, wheel_select, wheel_pos_select, plugboard_setup)
 pos_first = 0
 pos_sec = 0
 pos_third = 0
-
+alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+# wheel position 만큼 wheel wire 조정
+for i in range(2,-1,-1):
+    to_shfit = SETTINGS["WHEEL_POS"][i]
+    temp_wire = SETTINGS["WHEELS"][i]["wire"]
+    wire = ""
+    for char in temp_wire:
+        wire += shift(char, to_shfit, alphabet)
+    SETTINGS["WHEELS"][i]["wire"] = wire
+    #print(i, "RD WHELL WIRE SETTING COMPLETED : ", SETTINGS["WHEELS"][i]["wire"])
+res = ""
 for ch in plaintext:
     rotate_wheels()
 
@@ -153,4 +201,5 @@ for ch in plaintext:
     encoded_ch = pass_wheels(encoded_ch, reverse = True)
     encoded_ch = pass_plugboard(encoded_ch)
 
-    print(encoded_ch, end='')
+    res += encoded_ch
+print("encoded plaintext : ", res)
