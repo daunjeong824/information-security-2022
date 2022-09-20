@@ -104,19 +104,16 @@ def pass_wheels(input, reverse = False):
     else:
         # 2 -> 1 -> 0
         input_index = SETTINGS["ETW"].index(input)
-        #input_index = (input_index + pos_first) % 26
         left_wheel_mapped = SETTINGS["WHEELS"][2]["wire"][input_index]
 
-        #middle_index = SETTINGS["WHEELS"][1]["wire"].index(left_wheel_mapped)
-        #middle_index = (middle_index + pos_sec) % 26
         middle_index = SETTINGS["WHEELS"][2]["mapped"].index(left_wheel_mapped)
         middle_wheel_mapped = SETTINGS["WHEELS"][1]["wire"][middle_index]
-        print(SETTINGS["WHEELS"][1]["wire"], middle_wheel_mapped)
+        #print(SETTINGS["WHEELS"][1]["wire"], middle_wheel_mapped)
 
         right_index = SETTINGS["WHEELS"][1]["mapped"].index(middle_wheel_mapped)
-        #right_index = (right_index + pos_third) % 26
         right_wheel_mapped = SETTINGS["WHEELS"][0]["wire"][right_index]
-        print("wheel_rightside_index (1,2,3) :", input_index, middle_index, right_index)
+        print("TO UKW after wheel => ", left_wheel_mapped, middle_wheel_mapped, right_wheel_mapped)
+        print("TO UKW before wheel =>", SETTINGS["WHEELS"][2]["mapped"][input_index], SETTINGS["WHEELS"][1]["mapped"][middle_index], SETTINGS["WHEELS"][0]["mapped"][right_index])
         print("GO to UKW : ", right_wheel_mapped)
         return right_wheel_mapped
 
@@ -161,10 +158,10 @@ def update_wheel_count(current_wheel_pos):
     else:
         return 25
 
-def shift(letter, shift, alphabet):
+'''def shift(letter, shift, alphabet):
     for i in range(0, len(alphabet)):
         if alphabet[i] == letter:
-            return alphabet[(i+shift) % len(alphabet)]
+            return alphabet[(i+shift) % len(alphabet)] '''
 
 # Enigma Exec Start
 plaintext = input("Plaintext to Encode: ")
@@ -182,10 +179,10 @@ alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 # wheel position 만큼 wheel wire 조정
 for i in range(2,-1,-1):
     to_shfit = SETTINGS["WHEEL_POS"][i]
+    if to_shfit == 0:
+        continue
     temp_wire = SETTINGS["WHEELS"][i]["wire"]
-    wire = ""
-    for char in temp_wire:
-        wire += shift(char, to_shfit, alphabet)
+    wire = temp_wire[to_shfit:] + temp_wire[:to_shfit]
     SETTINGS["WHEELS"][i]["wire"] = wire
     #print(i, "RD WHELL WIRE SETTING COMPLETED : ", SETTINGS["WHEELS"][i]["wire"])
 res = ""
@@ -202,4 +199,4 @@ for ch in plaintext:
     encoded_ch = pass_plugboard(encoded_ch)
 
     res += encoded_ch
-print("encoded plaintext : ", res)
+print("encoded plaintext : ",res)
