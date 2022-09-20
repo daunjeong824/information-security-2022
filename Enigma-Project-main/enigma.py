@@ -17,15 +17,15 @@ WHEELS = {
     "I" : {
         "wire": "EKMFLGDQVZNTOWYHXUSPAIBRCJ", # wheel 원판 순서
         "mapped": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "turn": 2 # 현재 wheel 위치가 turn 도달 시, 다음 wheel로..
+        "turn": 21 # 현재 wheel 위치가 turn 도달 시, 다음 wheel로..
     },
     "II": {
         "wire": "AJDKSIRUXBLHWTMCQGZNPYFVOE",
         "mapped": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-        "turn": 4
+        "turn": 21
     },
     "III": {
-        "wire": "BDFHJLCPRTXVZNYEIWGAKMUSQO",
+        "wire": "BDFHJLCPRTXVZNYEIWGAKMUSQO",   
         "mapped": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
         "turn": 21
     }
@@ -91,34 +91,33 @@ def pass_wheels(input, reverse = False):
     # Keep in mind that reflected signals pass wheels in reverse order
     if reverse:
         # 0 -> 1 -> 2
-        right_index = SETTINGS["WHEELS"][0]["wire"].index(input)
-        right_index = (right_index + pos_first) % 26
-        right_wheel_mapped_reverse = SETTINGS["WHEELS"][0]["mapped"][right_index]
+        right_reverse_index = SETTINGS["WHEELS"][0]["wire"].index(input) # Z의 index, M번째, idx = 12
+        
+        middle_reverse = SETTINGS["WHEELS"][1]["mapped"][right_reverse_index] # mapped idx = 12, M
+        middle_reverse_index = SETTINGS["WHEELS"][1]["wire"].index(middle_reverse) # 2nd wheel의 M의 index
 
-        middle_index = SETTINGS["WHEELS"][1]["wire"].index(right_wheel_mapped_reverse)
-        middle_index = (middle_index + pos_sec) % 26
-        middle_wheel_mapped_reverse = SETTINGS["WHEELS"][1]["mapped"][middle_index]
+        left_reverse = SETTINGS["WHEELS"][2]["mapped"][middle_reverse_index] # mapped idx = 15
+        left_reverse_index = SETTINGS["WHEELS"][2]["wire"].index(left_reverse)
 
-        left_index = SETTINGS["WHEELS"][2]["wire"].index(middle_wheel_mapped_reverse)
-        left_index = (left_index + pos_third) % 26
-        left_wheel_mapped_reverse = SETTINGS["WHEELS"][2]["mapped"][left_index]
-        #print("Back to the BTW : ", left_wheel_mapped_reverse)
-        return left_wheel_mapped_reverse
+        return SETTINGS["ETW"][left_reverse_index]
 
     else:
-        input_index = SETTINGS["ETW"].index(input)
         # 2 -> 1 -> 0
-        input_index = (input_index + pos_first) % 26
+        input_index = SETTINGS["ETW"].index(input)
+        #input_index = (input_index + pos_first) % 26
         left_wheel_mapped = SETTINGS["WHEELS"][2]["wire"][input_index]
 
-        middle_index = SETTINGS["WHEELS"][1]["wire"].index(left_wheel_mapped)
-        middle_index = (middle_index + pos_sec) % 26
+        #middle_index = SETTINGS["WHEELS"][1]["wire"].index(left_wheel_mapped)
+        #middle_index = (middle_index + pos_sec) % 26
+        middle_index = SETTINGS["WHEELS"][2]["mapped"].index(left_wheel_mapped)
         middle_wheel_mapped = SETTINGS["WHEELS"][1]["wire"][middle_index]
+        print(SETTINGS["WHEELS"][1]["wire"], middle_wheel_mapped)
 
-        right_index = SETTINGS["WHEELS"][0]["wire"].index(middle_wheel_mapped)
-        right_index = (right_index + pos_third) % 26
+        right_index = SETTINGS["WHEELS"][1]["mapped"].index(middle_wheel_mapped)
+        #right_index = (right_index + pos_third) % 26
         right_wheel_mapped = SETTINGS["WHEELS"][0]["wire"][right_index]
-        
+        print("wheel_rightside_index (1,2,3) :", input_index, middle_index, right_index)
+        print("GO to UKW : ", right_wheel_mapped)
         return right_wheel_mapped
 
 def update_index(idx, pos):
@@ -141,10 +140,11 @@ def rotate_wheels():
     SETTINGS["WHEEL_POS"][2] = update_wheel_count(SETTINGS["WHEEL_POS"][2])
     pos_first += 1
     
+    
     # 3. second wheel rotate (1째 wheel이 다 돌면 +1)
     if pos_first % SETTINGS["WHEELS"][2]["turn"] == 0:
         SETTINGS["WHEELS"][1]["wire"] = SETTINGS["WHEELS"][1]["wire"][1:] + SETTINGS["WHEELS"][1]["wire"][:1]
-        SETTINGS["WHEELS"][2]["mapped"] = SETTINGS["WHEELS"][1]["mapped"][1:] + SETTINGS["WHEELS"][1]["mapped"][:1]
+        SETTINGS["WHEELS"][1]["mapped"] = SETTINGS["WHEELS"][1]["mapped"][1:] + SETTINGS["WHEELS"][1]["mapped"][:1]
         SETTINGS["WHEEL_POS"][1] = update_wheel_count(SETTINGS["WHEEL_POS"][1])
         pos_sec += 1
        
