@@ -91,7 +91,9 @@ def pass_wheels(input, reverse = False):
     # Keep in mind that reflected signals pass wheels in reverse order
     if reverse:
         # 0 -> 1 -> 2
-        right_reverse_index = SETTINGS["WHEELS"][0]["wire"].index(input) # Z의 index, M번째, idx = 12
+        input_idx = SETTINGS["ETW"].find(input)
+        right_reverse = SETTINGS["WHEELS"][0]["mapped"][input_idx]
+        right_reverse_index = SETTINGS["WHEELS"][0]["wire"].index(right_reverse) # Z의 index, M번째, idx = 12
         
         middle_reverse = SETTINGS["WHEELS"][1]["mapped"][right_reverse_index] # mapped idx = 12, M
         middle_reverse_index = SETTINGS["WHEELS"][1]["wire"].index(middle_reverse) # 2nd wheel의 M의 index
@@ -105,17 +107,16 @@ def pass_wheels(input, reverse = False):
         # 2 -> 1 -> 0
         input_index = SETTINGS["ETW"].index(input)
         left_wheel_mapped = SETTINGS["WHEELS"][2]["wire"][input_index]
-
+        
         middle_index = SETTINGS["WHEELS"][2]["mapped"].index(left_wheel_mapped)
         middle_wheel_mapped = SETTINGS["WHEELS"][1]["wire"][middle_index]
         #print(SETTINGS["WHEELS"][1]["wire"], middle_wheel_mapped)
 
         right_index = SETTINGS["WHEELS"][1]["mapped"].index(middle_wheel_mapped)
         right_wheel_mapped = SETTINGS["WHEELS"][0]["wire"][right_index]
-        print("TO UKW after wheel => ", left_wheel_mapped, middle_wheel_mapped, right_wheel_mapped)
-        print("TO UKW before wheel =>", SETTINGS["WHEELS"][2]["mapped"][input_index], SETTINGS["WHEELS"][1]["mapped"][middle_index], SETTINGS["WHEELS"][0]["mapped"][right_index])
-        print("GO to UKW : ", right_wheel_mapped)
-        return right_wheel_mapped
+        
+        final_index = SETTINGS["WHEELS"][0]["mapped"].index(right_wheel_mapped)
+        return SETTINGS["ETW"][final_index]
 
 def update_index(idx, pos):
     if idx > 0:
