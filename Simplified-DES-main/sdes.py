@@ -8,16 +8,16 @@ from ctypes import ArgumentError
 import re
 from bitarray import bitarray, util as ba_util
 
-# Initial Permutation (IP)
+# Initial Permutation (IP) - 평문 -> 재배치 (1단계)
 IP = [ 1, 5, 2, 0, 3, 7, 4, 6 ]
 
-# Inverse of Initial Permutation (or Final Permutation)
+# Inverse of Initial Permutation (or Final Permutation) (마지막 단계)
 IP_1 = [ 3, 0, 2, 4, 6, 1, 7, 5]
 
-# Expansion (4bits -> 8bits)
+# Expansion (4bits -> 8bits) - round 함수 확장
 EP = [ 3, 0, 1, 2, 1, 2, 3, 0 ]
 
-# SBox (S0)
+# SBox (S0) - 1째 round 함수
 S0 = [
     [ 1, 0, 3, 2 ],
     [ 3, 2, 1, 0 ],
@@ -25,7 +25,7 @@ S0 = [
     [ 3, 1, 3, 2 ]
 ]
 
-# SBox (S1)
+# SBox (S1) - 2째 round 함수 
 S1 = [
     [ 0, 1, 2, 3 ],
     [ 2, 0, 1, 3 ],
@@ -89,7 +89,7 @@ def round(text: bitarray, round_key: bitarray) -> bitarray:
     expanded = bitarray()
     for i in EP:
         expanded.append(text[i])
-    expanded ^= round_key
+    expanded ^= round_key # XOR == ^=
 
     # S0
     s0_row = expanded[0:4]
@@ -117,11 +117,50 @@ mode determines that this function do encryption or decryption.
      MODE_ENCRYPT or MODE_DECRYPT available.
 '''
 def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
+    first = bitarray()
     result = bitarray()
-    
-    # Place your own implementation of S-DES Here
-    
+    # 1. Pass _ IP (IP = [ 1, 5, 2, 0, 3, 7, 4, 6 ]), divided into half
+    for i in range(0, 8):
+        first.append(text[IP[i]])
+    L0 = first[0:4]
+    R0 = first[4:8]
+
+    # 1. get K1, K2 using shcedule_key, Key_list = [K1, K2]
+    Key_list = schedule_keys(key)
+    K1 = Key_list[0]
+    K2 = Key_list[1]
+
+    if mode == MODE_ENCRYPT:
+        # 2. get 1st round & XOR result & L0
+        res_1 = round(R0, K1)
+        R1 = res_1 ^ L0
+        L1 = R0
+        print("1st data after round : ", L1 + R1)
+        # 3. 2nd round
+        res_2 = round(R1, K2)
+        R2 = res_2 ^ L1
+        L2 = R1
+        # 4. Pass _ FP
+        print("2nd data after round : ", L2 + R2)
+        result_text = R2 + L2
+        for j in range(0, 8):
+            result.append(result_text[IP_1[j]])
+        
+    elif mode == MODE_DECRYPT:
+        # 2. get 1st round & XOR result & L0
+        res_1 = round(R0, K2)
+        R1 = res_1 ^ L0
+        L1 = R0
+        # 3. 2nd round
+        res_2 = round(R1, K1)
+        R2 = res_2 ^ L1
+        L2 = R1
+        # 4. Pass _ FP
+        result_text = R2 + L2
+        for j in range(0, 8):
+            result.append(result_text[IP_1[j]])
     return result
+
 
 #### DES Sample Program Start
 
