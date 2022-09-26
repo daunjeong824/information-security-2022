@@ -135,13 +135,13 @@ def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
         res_1 = round(R0, K1)
         R1 = res_1 ^ L0
         L1 = R0
-        print("1st data after round : ", L1 + R1)
+        
         # 3. 2nd round
         res_2 = round(R1, K2)
         R2 = res_2 ^ L1
         L2 = R1
         # 4. Pass _ FP
-        print("2nd data after round : ", L2 + R2)
+
         result_text = R2 + L2
         for j in range(0, 8):
             result.append(result_text[IP_1[j]])
