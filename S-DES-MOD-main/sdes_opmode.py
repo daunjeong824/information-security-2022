@@ -148,17 +148,67 @@ def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
 
 
 def sdes_encrypt_ecb(text: bitarray, key: bitarray):
-    pass
+    res = bitarray()
+    tmp = len(text) // 8
+
+    for i in range(tmp):
+        part_text = text[i*8:(i+1)*8]
+        #print("this is part : ", part_text)
+        after_sdes = sdes(part_text, key, MODE_ENCRYPT)
+        res += after_sdes
+
+    return res
 
 def sdes_decrypt_ecb(ciphertext: bitarray, key: bitarray):
-    pass
+    res = bitarray()
+    tmp = len(ciphertext) // 8
+
+    for j in range(tmp):
+        part_text = ciphertext[j*8:(j+1)*8]
+        after_sdes = sdes(part_text, key, MODE_DECRYPT)
+        res += after_sdes
+    
+    return res
 
 def sdes_encrypt_cbc(text: bitarray, key: bitarray, iv:bitarray):
-    pass
+    res = bitarray()
+    after_sdes = bitarray()
+    tmp = len(text) // 8
+
+    for i in range(tmp):
+        part_text = text[i*8 :(i+1)*8]
+        if i == 0:
+            iv_xor = iv ^ part_text
+            after_sdes = sdes(iv_xor, key, MODE_ENCRYPT)
+            res += after_sdes
+
+        else:
+            text_xor = part_text ^ after_sdes
+            after_sdes = sdes(text_xor, key, MODE_ENCRYPT)
+            res += after_sdes
+
+    return res
 
 def sdes_decrypt_cbc(ciphertext: bitarray, key: bitarray, iv:bitarray):
-    pass
+    res = bitarray()
+    before_sdes = bitarray()
+    tmp = len(ciphertext) // 8
 
+    for j in range(tmp):
+        part_text = ciphertext[j*8 : (j+1)*8]
+        if j == 0:
+            before_sdes = part_text
+            after_sdes = sdes(part_text, key, MODE_DECRYPT)
+            after_sdes ^= iv
+            res += after_sdes
+
+        else:
+            after_sdes = sdes(part_text, key, MODE_DECRYPT)
+            after_sdes ^= before_sdes
+            before_sdes = part_text
+            res += after_sdes
+    return res
+    
 #### DES Sample Program Start
 
 plaintext = input("[*] Input Plaintext in Binary: ")
@@ -194,6 +244,8 @@ else:
 
 random_iv = bitarray(bin(random.getrandbits(8)).replace('0b', ''))
 print(f"IV will be random...{random_iv}")
+if len(random_iv) != 8 :
+    raise ArgumentError("IV length is wrong!! retry..")
 
 result_encrypt = sdes_encrypt_cbc(bits_plaintext, bits_key, random_iv)
 
