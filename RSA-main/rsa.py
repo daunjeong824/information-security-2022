@@ -19,19 +19,35 @@ def primesInRange(x, y):
             
     return prime_list
 
+def gcd(a, b):
+    while b != 0:
+        a, b = b, a%b
+    return a 
+
 def make_keys(p: BigNumber, q: BigNumber):
     # place your own implementation of make_keys
     # use e = 65537 as if FIPS standard
+    n = p * q
+    tor = (p-1) * (q-1)
+    e = 65537
+    
+    d = 1
+    while (e*d)%tor != 1 or d == e:
+        d += 1
 
     return [e, d, n]
 
 def rsa_encrypt(plain: BigNumber, e: BigNumber, n: BigNumber):
     # place your own implementation of rsa_encrypt
-    pass
+    tmp = pow(plain, e)
+    res = tmp % n
+    return res
 
 def rsa_decrypt(cipher: BigNumber, d: BigNumber, n: BigNumber):
     # place your own implementation of rsa_decrypt
-    pass
+    tmp = pow(cipher, d)
+    res = tmp % n
+    return res
 
 primes = primesInRange(100, 1000)
 
