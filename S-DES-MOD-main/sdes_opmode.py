@@ -153,7 +153,6 @@ def sdes_encrypt_ecb(text: bitarray, key: bitarray):
 
     for i in range(tmp):
         part_text = text[i*8:(i+1)*8]
-        #print("this is part : ", part_text)
         after_sdes = sdes(part_text, key, MODE_ENCRYPT)
         res += after_sdes
 
@@ -177,14 +176,14 @@ def sdes_encrypt_cbc(text: bitarray, key: bitarray, iv:bitarray):
 
     for i in range(tmp):
         part_text = text[i*8 :(i+1)*8]
-        if i == 0:
-            iv_xor = iv ^ part_text
-            after_sdes = sdes(iv_xor, key, MODE_ENCRYPT)
-            res += after_sdes
+        if i == 0: # first permutation
+            iv_xor = iv ^ part_text # iv ^ first block
+            after_sdes = sdes(iv_xor, key, MODE_ENCRYPT) # then encrypt
+            res += after_sdes 
 
         else:
-            text_xor = part_text ^ after_sdes
-            after_sdes = sdes(text_xor, key, MODE_ENCRYPT)
+            text_xor = part_text ^ after_sdes # prev block ^ curr block
+            after_sdes = sdes(text_xor, key, MODE_ENCRYPT) # then encrypt
             res += after_sdes
 
     return res
@@ -196,16 +195,16 @@ def sdes_decrypt_cbc(ciphertext: bitarray, key: bitarray, iv:bitarray):
 
     for j in range(tmp):
         part_text = ciphertext[j*8 : (j+1)*8]
-        if j == 0:
-            before_sdes = part_text
-            after_sdes = sdes(part_text, key, MODE_DECRYPT)
-            after_sdes ^= iv
+        if j == 0: # first permutation
+            before_sdes = part_text # to send second permutation
+            after_sdes = sdes(part_text, key, MODE_DECRYPT) # decrypt
+            after_sdes ^= iv # then iv ^ decrpyt first block
             res += after_sdes
 
         else:
-            after_sdes = sdes(part_text, key, MODE_DECRYPT)
-            after_sdes ^= before_sdes
-            before_sdes = part_text
+            after_sdes = sdes(part_text, key, MODE_DECRYPT) # decrypt
+            after_sdes ^= before_sdes # then prev block ^ curr decrypt block
+            before_sdes = part_text # to send next permutation
             res += after_sdes
     return res
     

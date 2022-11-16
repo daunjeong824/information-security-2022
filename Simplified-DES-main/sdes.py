@@ -132,9 +132,9 @@ def sdes(text: bitarray, key: bitarray, mode) -> bitarray:
 
     if mode == MODE_ENCRYPT:
         # 2. get 1st round & XOR result & L0
-        res_1 = round(R0, K1)
-        R1 = res_1 ^ L0
-        L1 = R0
+        res_1 = round(R0, K1) # Right bit & Key -> Festial func
+        R1 = res_1 ^ L0 # next Right bit = Festial res XOR Left bit
+        L1 = R0 # next Left = Right bit
         
         # 3. 2nd round
         res_2 = round(R1, K2)

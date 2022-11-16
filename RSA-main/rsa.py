@@ -19,7 +19,7 @@ def primesInRange(x, y):
             
     return prime_list
 
-def gcd(a, b):
+def gcd(a, b): # to get "e", gcd(e,tor) = 1 만족하는 e 찾기..
     while b != 0:
         a, b = b, a%b
     return a 
@@ -28,7 +28,7 @@ def make_keys(p: BigNumber, q: BigNumber):
     # place your own implementation of make_keys
     # use e = 65537 as if FIPS standard
     n = p * q
-    tor = (p-1) * (q-1)
+    tor = (p-1) * (q-1) # L(tor) = gcm(p-1, q-1)
     e = 65537
     
     d = 1
