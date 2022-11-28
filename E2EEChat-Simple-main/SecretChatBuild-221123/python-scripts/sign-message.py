@@ -1,3 +1,4 @@
+#-*- coding:utf-8 -*-
 from Crypto import Random
 from Crypto.Signature import pkcs1_15
 from Crypto.PublicKey import RSA
@@ -14,13 +15,19 @@ def make_message_hash(msg):
     return SHA256.new(msg.encode('utf-8'))
 
 def read_from_base64():
-    return [ input(), decode_base64(input()) ]
+    return [ decode_base64(input()), input() ]
 
 # https://pycryptodome.readthedocs.io/en/latest/src/signature/pkcs1_v1_5.html
 def sign(msg, key):
     # PKCS #1 v1.5 를 이용한 전자서명 생성
+    h = make_message_hash(msg)
+    key = RSA.import_key(key)
+    signature = pkcs1_15.new(key).sign(h)
+    
+    return signature
 
 [msg, prikey] = read_from_base64()
 
 sign_result = sign(msg, prikey)
+sign_result_str = encode_base64(sign_result)
 print( encode_base64(sign_result) )
