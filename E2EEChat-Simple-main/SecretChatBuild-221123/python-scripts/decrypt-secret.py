@@ -19,5 +19,5 @@ def decrypt_secret(secret, priKey):
     return decrypted_SecretKey
 
 [secret, prikey] = read_from_base64()
-result = decrypt_secret(secret, prikey).decode('ascii')
+result = base64.b64encode(decrypt_secret(secret, prikey)).decode('ascii')
 print(result)
