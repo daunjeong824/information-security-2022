@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+
 from Crypto.Util.Padding import unpad
 from Crypto.Cipher import AES
 import base64
@@ -10,9 +10,9 @@ def read_from_base64():
     return [ decode_base64(input()), decode_base64(input()), decode_base64(input())]
 
 def decrypt_message(key, iv, message):
-    # AES 256 암호화 구현
+
     cipher = AES.new(key, AES.MODE_CBC, iv)
-    plainText= cipher.decrypt(message)
+    plainText = cipher.decrypt(message)
 
     return unpad(plainText, AES.block_size)
 

@@ -15,7 +15,7 @@ def make_message_hash(msg):
     return SHA256.new(msg.encode('utf-8'))
 
 def read_from_base64():
-    return [ decode_base64(input()), input() ]
+    return [ input(), decode_base64(input()) ]
 
 # https://pycryptodome.readthedocs.io/en/latest/src/signature/pkcs1_v1_5.html
 def sign(msg, key):
@@ -29,5 +29,5 @@ def sign(msg, key):
 [msg, prikey] = read_from_base64()
 
 sign_result = sign(msg, prikey)
-sign_result_str = encode_base64(sign_result)
+
 print( encode_base64(sign_result) )

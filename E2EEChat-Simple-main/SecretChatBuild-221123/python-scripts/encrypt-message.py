@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+
 from Crypto.Util.Padding import pad
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES
@@ -18,7 +18,7 @@ def pad_message(msg):
     return pad(padded_msg, AES.block_size)
 
 def encrypt_message(key, iv, msg):
-    # AES 256 암호화 구현
+    # AES 256
     cipher = AES.new(key, AES.MODE_CBC, iv)
     cipherText = cipher.encrypt(msg)
     return encode_base64(cipherText)
@@ -26,7 +26,7 @@ def encrypt_message(key, iv, msg):
 [secretkey, message] = read_from_base64()
 
 message = pad_message(message)
-randomiv = get_random_bytes(16)# 16바이트 (128비트 IV 랜덤 생성)
+randomiv = get_random_bytes(16)
 
 randomiv_str = encode_base64(randomiv)
 cipher_str = encrypt_message(secretkey, randomiv, message)

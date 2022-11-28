@@ -1,4 +1,4 @@
-#-*- coding:utf-8 -*-
+
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import base64
@@ -11,13 +11,13 @@ def read_from_base64():
     return [ decode_base64(input()), decode_base64(input()) ]
 
 def decrypt_secret(secret, priKey):
-    # PKCS#1 OAEP를 이용한 RSA 복호화 구현
-    cipherRSA = PKCS1_OAEP.new(priKey)
+    
+    myPrikey = RSA.import_key(priKey)
+    cipherRSA = PKCS1_OAEP.new(myPrikey)
     decrypted_SecretKey = cipherRSA.decrypt(secret)
 
     return decrypted_SecretKey
 
 [secret, prikey] = read_from_base64()
 result = decrypt_secret(secret, prikey).decode('ascii')
-
 print(result)
